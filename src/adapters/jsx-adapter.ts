@@ -46,14 +46,18 @@ interface JSXOpeningElement {
   selfClosing: boolean;
 }
 
+interface JSXChild {
+  type: string;
+  value?: string;
+  expression?: { type: string };
+  openingElement?: JSXOpeningElement;
+  children?: JSXChild[];
+}
+
 interface JSXElement {
   type: 'JSXElement';
   openingElement: JSXOpeningElement;
-  children: Array<{
-    type: string;
-    value?: string;
-    expression?: { type: string };
-  }>;
+  children: JSXChild[];
 }
 
 /**
@@ -100,17 +104,11 @@ function normalizeAttributeName(jsxPropName: string): string {
 }
 
 /**
- * Extract a single ParsedElement from a JSXOpeningElement AST node.
- * Returns null if the element is not an SWC component.
+ * Extract attributes from a JSXOpeningElement into a normalized map.
  */
-function extractSingleElement(node: Rule.Node): ParsedElement | null {
-  const jsxNode = node as unknown as JSXElement;
-  const opening = jsxNode.openingElement;
-
-  const rawName = getJsxElementName(opening.name);
-  if (!rawName || !isSwcJsxTag(rawName)) return null;
-
-  const tagName = resolveJsxTagName(rawName);
+function extractAttributes(
+  opening: JSXOpeningElement
+): Map<string, AttributeValue> {
   const attributes = new Map<string, AttributeValue>();
 
   for (const attr of opening.attributes) {
@@ -132,6 +130,71 @@ function extractSingleElement(node: Rule.Node): ParsedElement | null {
     }
   }
 
+  return attributes;
+}
+
+/**
+ * Recursively extract child ParsedElements from JSX children.
+ * Includes all element children so slot validation can check non-SWC tags too.
+ */
+function extractChildElements(children: JSXChild[]): ParsedElement[] {
+  const results: ParsedElement[] = [];
+
+  for (const child of children) {
+    if (child.type !== 'JSXElement' || !child.openingElement) continue;
+
+    const rawName = getJsxElementName(child.openingElement.name);
+    if (!rawName) continue;
+
+    const isSwc = isSwcJsxTag(rawName);
+    const tagName = isSwc ? resolveJsxTagName(rawName) : rawName;
+    const attributes = extractAttributes(child.openingElement);
+    const grandchildren = child.children
+      ? extractChildElements(child.children)
+      : [];
+
+    let hasTextContent = false;
+    if (child.children) {
+      for (const grandchild of child.children) {
+        if (grandchild.type === 'JSXText') {
+          const text = (grandchild.value ?? '').trim();
+          if (text.length > 0) {
+            hasTextContent = true;
+            break;
+          }
+        }
+      }
+    }
+
+    results.push({
+      tagName,
+      attributes,
+      children: grandchildren,
+      hasTextContent,
+    });
+  }
+
+  return results;
+}
+
+/**
+ * Extract a ParsedElement from a JSXElement AST node.
+ * Returns an empty array if not an SWC element.
+ * Recursively extracts direct children for slot validation.
+ */
+export function extractElementFromJSX(node: Rule.Node): ParsedElement[] {
+  const jsxNode = node as unknown as JSXElement;
+  const opening = jsxNode.openingElement;
+
+  const rawName = getJsxElementName(opening.name);
+  if (!rawName || !isSwcJsxTag(rawName)) return [];
+
+  const tagName = resolveJsxTagName(rawName);
+  const attributes = extractAttributes(opening);
+  const children = jsxNode.children
+    ? extractChildElements(jsxNode.children)
+    : [];
+
   let hasTextContent = false;
   if (jsxNode.children) {
     for (const child of jsxNode.children) {
@@ -145,19 +208,12 @@ function extractSingleElement(node: Rule.Node): ParsedElement | null {
     }
   }
 
-  return {
-    tagName,
-    attributes,
-    children: [],
-    hasTextContent,
-  };
-}
-
-/**
- * Extract a ParsedElement from a JSXElement AST node.
- * Returns an empty array if not an SWC element.
- */
-export function extractElementFromJSX(node: Rule.Node): ParsedElement[] {
-  const element = extractSingleElement(node);
-  return element ? [element] : [];
+  return [
+    {
+      tagName,
+      attributes,
+      children,
+      hasTextContent,
+    },
+  ];
 }

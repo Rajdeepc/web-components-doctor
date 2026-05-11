@@ -15,6 +15,8 @@ import { accessibleComponent } from './rules/accessible-component.js';
 import { noDeprecated } from './rules/no-deprecated.js';
 import { requiredAttributes } from './rules/required-attributes.js';
 import { validAttributeValues } from './rules/valid-attribute-values.js';
+import { validSlotNames } from './rules/valid-slot-names.js';
+import { validSlotChildren } from './rules/valid-slot-children.js';
 
 const PLUGIN_NAME = 'swc';
 
@@ -23,6 +25,8 @@ const rules = {
   'no-deprecated': noDeprecated,
   'required-attributes': requiredAttributes,
   'valid-attribute-values': validAttributeValues,
+  'valid-slot-names': validSlotNames,
+  'valid-slot-children': validSlotChildren,
 };
 
 const recommendedRules: Linter.RulesRecord = {
@@ -30,6 +34,8 @@ const recommendedRules: Linter.RulesRecord = {
   [`${PLUGIN_NAME}/no-deprecated`]: 'warn',
   [`${PLUGIN_NAME}/required-attributes`]: 'warn',
   [`${PLUGIN_NAME}/valid-attribute-values`]: 'warn',
+  [`${PLUGIN_NAME}/valid-slot-names`]: 'warn',
+  [`${PLUGIN_NAME}/valid-slot-children`]: 'warn',
 };
 
 const strictRules: Linter.RulesRecord = {
@@ -37,12 +43,14 @@ const strictRules: Linter.RulesRecord = {
   [`${PLUGIN_NAME}/no-deprecated`]: 'error',
   [`${PLUGIN_NAME}/required-attributes`]: 'error',
   [`${PLUGIN_NAME}/valid-attribute-values`]: 'error',
+  [`${PLUGIN_NAME}/valid-slot-names`]: 'error',
+  [`${PLUGIN_NAME}/valid-slot-children`]: 'error',
 };
 
 const plugin: ESLint.Plugin = {
   meta: {
     name: 'web-components-doctor',
-    version: '0.2.0',
+    version: '0.3.0',
   },
   rules,
   configs: {},
@@ -76,4 +84,8 @@ plugin.configs = configs;
 
 export default plugin;
 export { rules, configs };
-export type { ComponentDescriptor, ComponentDescriptorMap } from './core/types.js';
+export type {
+  ComponentDescriptor,
+  ComponentDescriptorMap,
+  SlotDescriptor,
+} from './core/types.js';

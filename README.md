@@ -152,6 +152,73 @@ html`<sp-theme color="light"></sp-theme>`;
 html`<sp-button variant="accent">Click</sp-button>`;
 ```
 
+### `swc/valid-slot-names`
+
+Warn when a child element targets a slot that the parent component doesn't define.
+
+```js
+// ❌ Bad — Lit
+html`<sp-action-menu label="Actions">
+  <sp-menu-item slot="header">Edit</sp-menu-item>
+</sp-action-menu>`;
+
+// ❌ Bad — JSX
+<SpActionMenu label="Actions">
+  <SpMenuItem slot="header">Edit</SpMenuItem>
+</SpActionMenu>
+
+// ✅ Good — Lit
+html`<sp-action-menu label="Actions">
+  <sp-menu-item>Edit</sp-menu-item>
+  <sp-icon slot="icon"></sp-icon>
+</sp-action-menu>`;
+
+// ✅ Good — JSX
+<SpActionMenu label="Actions">
+  <SpMenuItem>Edit</SpMenuItem>
+  <SpIcon slot="icon"></SpIcon>
+</SpActionMenu>
+```
+
+### `swc/valid-slot-children`
+
+Warn when a child element's tag is not accepted in the slot it targets.
+
+```js
+// ❌ Bad — Lit (sp-action-menu default slot only accepts sp-menu-item/group/divider)
+html`<sp-action-menu label="Actions">
+  <sp-button>Wrong child</sp-button>
+</sp-action-menu>`;
+
+// ❌ Bad — JSX
+<SpActionMenu label="Actions">
+  <SpButton>Wrong child</SpButton>
+</SpActionMenu>
+
+// ✅ Good — Lit
+html`<sp-action-menu label="Actions">
+  <sp-menu-item>Edit</sp-menu-item>
+  <sp-menu-divider></sp-menu-divider>
+  <sp-menu-item>Delete</sp-menu-item>
+</sp-action-menu>`;
+
+// ✅ Good — JSX
+<SpActionMenu label="Actions">
+  <SpMenuItem>Edit</SpMenuItem>
+  <SpMenuDivider></SpMenuDivider>
+  <SpMenuItem>Delete</SpMenuItem>
+</SpActionMenu>
+```
+
+| Component | Default slot accepts | Named slots |
+|---|---|---|
+| `<sp-action-menu>` | `sp-menu-item`, `sp-menu-group`, `sp-menu-divider` | `icon`, `label`, `tooltip` |
+| `<sp-picker>` | `sp-menu-item`, `sp-menu-group`, `sp-menu-divider` | `label`, `tooltip`, `description` |
+| `<sp-tabs>` | `sp-tab`, `sp-tab-panel` | — |
+| `<sp-button>` | (any) | `icon` (accepts `sp-icon`) |
+| `<sp-dialog-wrapper>` | (any) | `hero`, `heading`, `button` (accepts `sp-button`) |
+| `<overlay-trigger>` | (any) | `click-content`, `hover-content`, `longpress-content` |
+
 ## Architecture
 
 This plugin is **data-driven**. Rules are generated from component descriptors rather than hand-written per component:
@@ -184,6 +251,10 @@ Add an entry to `src/descriptors/components.ts`:
   validAttributeValues: {
     variant: ['primary', 'secondary'],
   },
+  slots: [
+    { name: '', acceptedChildren: ['sp-menu-item'] },
+    { name: 'icon', acceptedChildren: ['sp-icon'] },
+  ],
 }
 ```
 

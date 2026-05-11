@@ -84,6 +84,18 @@ export interface DeprecatedValueDescriptor {
 }
 
 /**
+ * Defines an accepted slot on a component.
+ */
+export interface SlotDescriptor {
+  /** Slot name. Use '' for the default (unnamed) slot. */
+  name: string;
+  /** Tag names accepted in this slot. Omit to accept any element. */
+  acceptedChildren?: string[];
+  /** If true, at least one child must fill this slot. */
+  required?: boolean;
+}
+
+/**
  * Full component descriptor combining all rule metadata for one element.
  */
 export interface ComponentDescriptor {
@@ -91,7 +103,7 @@ export interface ComponentDescriptor {
   accessibility?: AccessibilityDescriptor;
   deprecations?: DeprecationDescriptor;
   requiredAttributes?: string[];
-  validSlots?: string[];
+  slots?: SlotDescriptor[];
   validAttributeValues?: Record<string, string[]>;
 }
 

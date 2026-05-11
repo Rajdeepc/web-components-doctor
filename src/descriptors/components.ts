@@ -25,6 +25,19 @@ export const componentDescriptors: ComponentDescriptorMap = {
     accessibility: {
       requireOneOf: ['label', 'aria-label', 'aria-labelledby'],
     },
+    slots: [
+      {
+        name: '',
+        acceptedChildren: [
+          'sp-menu-item',
+          'sp-menu-group',
+          'sp-menu-divider',
+        ],
+      },
+      { name: 'icon', acceptedChildren: ['sp-icon'] },
+      { name: 'label' },
+      { name: 'tooltip', acceptedChildren: ['sp-tooltip'] },
+    ],
   },
 
   'sp-avatar': {
@@ -54,6 +67,12 @@ export const componentDescriptors: ComponentDescriptorMap = {
     accessibility: {
       requireOneOf: ['headline'],
     },
+    slots: [
+      { name: '' },
+      { name: 'hero' },
+      { name: 'heading' },
+      { name: 'button', acceptedChildren: ['sp-button'] },
+    ],
   },
 
   'sp-picker': {
@@ -61,6 +80,15 @@ export const componentDescriptors: ComponentDescriptorMap = {
     accessibility: {
       requireOneOf: ['label', 'aria-label', 'aria-labelledby'],
     },
+    slots: [
+      {
+        name: '',
+        acceptedChildren: ['sp-menu-item', 'sp-menu-group', 'sp-menu-divider'],
+      },
+      { name: 'label' },
+      { name: 'tooltip', acceptedChildren: ['sp-tooltip'] },
+      { name: 'description' },
+    ],
   },
 
   'sp-progress-bar': {
@@ -86,6 +114,9 @@ export const componentDescriptors: ComponentDescriptorMap = {
       direction: ['horizontal', 'vertical'],
       density: ['compact', 'regular'],
     },
+    slots: [
+      { name: '', acceptedChildren: ['sp-tab', 'sp-tab-panel'] },
+    ],
   },
 
   'sp-theme': {
@@ -101,10 +132,20 @@ export const componentDescriptors: ComponentDescriptorMap = {
   'overlay-trigger': {
     tagName: 'overlay-trigger',
     requiredAttributes: ['triggered-by'],
+    slots: [
+      { name: '', required: true },
+      { name: 'click-content' },
+      { name: 'hover-content' },
+      { name: 'longpress-content' },
+    ],
   },
 
   'sp-button': {
     tagName: 'sp-button',
+    slots: [
+      { name: '' },
+      { name: 'icon', acceptedChildren: ['sp-icon'] },
+    ],
     deprecations: {
       attributes: [
         {
@@ -172,6 +213,12 @@ export const componentDescriptors: ComponentDescriptorMap = {
 
   'sp-illustrated-message': {
     tagName: 'sp-illustrated-message',
+    slots: [
+      { name: '' },
+      { name: 'heading' },
+      { name: 'description' },
+      { name: 'illustration', acceptedChildren: ['sp-icon', 'svg'] },
+    ],
     deprecations: {
       attributes: [
         {

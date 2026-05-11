@@ -17,6 +17,7 @@ import type {
   ConditionalRule,
   DeprecationDescriptor,
   ParsedElement,
+  SlotDescriptor,
 } from './types.js';
 import { extractElementsFromTemplate } from '../adapters/lit-adapter.js';
 import { extractElementFromJSX } from '../adapters/jsx-adapter.js';
@@ -360,6 +361,150 @@ export function createValidAttributeValuesRule(
         },
         JSXElement(node: Rule.Node) {
           check(node, extractElementFromJSX(node));
+        },
+      };
+    },
+  };
+}
+
+/**
+ * Resolve which slot a child element targets based on its `slot` attribute.
+ * Returns '' (empty string) for the default slot.
+ */
+function getChildSlotName(child: ParsedElement): string {
+  const slotAttr = child.attributes.get('slot');
+  if (!slotAttr || slotAttr.isDynamic) return '';
+  return slotAttr.value ?? '';
+}
+
+/**
+ * Creates the `valid-slot-names` rule that checks children aren't placed
+ * into non-existent slots.
+ */
+export function createValidSlotNamesRule(
+  descriptors: ComponentDescriptorMap
+): RuleModule {
+  return {
+    meta: {
+      type: 'problem',
+      docs: {
+        description:
+          'Disallow placing children into slots that a Spectrum Web Component does not define.',
+        url: 'https://github.com/Rajdeepc/web-components-doctor#valid-slot-names',
+      },
+      messages: {
+        invalidSlot:
+          '<{{childTag}}> uses slot="{{slotName}}" but <{{parentTag}}> does not have a "{{slotName}}" slot. Valid slots: {{validSlots}}.',
+      },
+      schema: [],
+    },
+    create(context) {
+      function checkElement(node: Rule.Node, elements: ParsedElement[]) {
+        for (const element of elements) {
+          const descriptor = descriptors[element.tagName];
+          if (!descriptor?.slots) continue;
+
+          const validSlotNames = new Set(
+            descriptor.slots.map((s: SlotDescriptor) => s.name)
+          );
+
+          for (const child of element.children) {
+            const slotName = getChildSlotName(child);
+            if (slotName === '' && validSlotNames.has('')) continue;
+            if (validSlotNames.has(slotName)) continue;
+
+            context.report({
+              node,
+              messageId: 'invalidSlot',
+              data: {
+                childTag: child.tagName,
+                slotName,
+                parentTag: element.tagName,
+                validSlots: [...validSlotNames]
+                  .map((s) => (s === '' ? '(default)' : `"${s}"`))
+                  .join(', '),
+              },
+            });
+          }
+        }
+      }
+
+      return {
+        TaggedTemplateExpression(node: Rule.Node) {
+          checkElement(node, extractElementsFromTemplate(node));
+        },
+        JSXElement(node: Rule.Node) {
+          checkElement(node, extractElementFromJSX(node));
+        },
+      };
+    },
+  };
+}
+
+/**
+ * Creates the `valid-slot-children` rule that checks a child element's tag
+ * is accepted in the slot it targets.
+ */
+export function createValidSlotChildrenRule(
+  descriptors: ComponentDescriptorMap
+): RuleModule {
+  return {
+    meta: {
+      type: 'problem',
+      docs: {
+        description:
+          'Disallow placing elements into slots that do not accept their tag name.',
+        url: 'https://github.com/Rajdeepc/web-components-doctor#valid-slot-children',
+      },
+      messages: {
+        invalidChild:
+          '<{{childTag}}> is not accepted in the {{slotLabel}} of <{{parentTag}}>. Accepted children: {{accepted}}.',
+      },
+      schema: [],
+    },
+    create(context) {
+      function checkElement(node: Rule.Node, elements: ParsedElement[]) {
+        for (const element of elements) {
+          const descriptor = descriptors[element.tagName];
+          if (!descriptor?.slots) continue;
+
+          const slotMap = new Map<string, SlotDescriptor>(
+            descriptor.slots.map((s: SlotDescriptor) => [s.name, s])
+          );
+
+          for (const child of element.children) {
+            const slotName = getChildSlotName(child);
+            const slotDef = slotMap.get(slotName);
+
+            if (!slotDef || !slotDef.acceptedChildren) continue;
+
+            if (!slotDef.acceptedChildren.includes(child.tagName)) {
+              context.report({
+                node,
+                messageId: 'invalidChild',
+                data: {
+                  childTag: child.tagName,
+                  slotLabel:
+                    slotName === ''
+                      ? 'default slot'
+                      : `"${slotName}" slot`,
+                  parentTag: element.tagName,
+                  accepted: slotDef.acceptedChildren
+                    .map((t) => `<${t}>`)
+                    .join(', '),
+                },
+              });
+            }
+          }
+        }
+      }
+
+      return {
+        TaggedTemplateExpression(node: Rule.Node) {
+          checkElement(node, extractElementsFromTemplate(node));
+        },
+        JSXElement(node: Rule.Node) {
+          checkElement(node, extractElementFromJSX(node));
         },
       };
     },
