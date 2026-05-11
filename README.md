@@ -10,6 +10,8 @@ npm install web-components-doctor --save-dev
 
 ## Quick Start (ESLint 9+ flat config)
 
+### Lit (html tagged templates)
+
 ```js
 // eslint.config.js
 import swc from 'web-components-doctor';
@@ -17,6 +19,34 @@ import swc from 'web-components-doctor';
 export default [
   swc.configs.recommended,
 ];
+```
+
+### JSX / TSX (React, Preact, etc.)
+
+The plugin automatically detects both syntaxes. Just enable JSX parsing in your ESLint config:
+
+```js
+// eslint.config.js
+import swc from 'web-components-doctor';
+
+export default [
+  {
+    ...swc.configs.recommended,
+    languageOptions: {
+      parserOptions: {
+        ecmaFeatures: { jsx: true },
+      },
+    },
+  },
+];
+```
+
+Both kebab-case custom elements and PascalCase React wrappers are supported:
+
+```jsx
+// These are equivalent — both are checked
+<sp-action-menu label="Actions"></sp-action-menu>
+<SpActionMenu label="Actions"></SpActionMenu>
 ```
 
 Or for strict CI enforcement:
@@ -34,13 +64,21 @@ export default [
 Require accessibility attributes on SWC elements.
 
 ```js
-// ❌ Bad
+// ❌ Bad — Lit
 html`<sp-action-menu></sp-action-menu>`;
 html`<sp-picker></sp-picker>`;
 
-// ✅ Good
+// ❌ Bad — JSX
+<SpActionMenu></SpActionMenu>
+<SpPicker></SpPicker>
+
+// ✅ Good — Lit
 html`<sp-action-menu label="More actions"></sp-action-menu>`;
 html`<sp-picker aria-label="Select option"></sp-picker>`;
+
+// ✅ Good — JSX
+<SpActionMenu label="More actions"></SpActionMenu>
+<SpPicker aria-label="Select option"></SpPicker>
 ```
 
 | Element | Required (at least one of) |
@@ -60,13 +98,21 @@ html`<sp-picker aria-label="Select option"></sp-picker>`;
 Flag deprecated attributes and attribute values.
 
 ```js
-// ❌ Bad
+// ❌ Bad — Lit
 html`<sp-button variant="cta">Click</sp-button>`;
 html`<sp-overlay allow-outside-click></sp-overlay>`;
 
-// ✅ Good
+// ❌ Bad — JSX
+<SpButton variant="cta">Click</SpButton>
+<SpOverlay allowOutsideClick></SpOverlay>
+
+// ✅ Good — Lit
 html`<sp-button variant="accent">Click</sp-button>`;
 html`<sp-overlay></sp-overlay>`;
+
+// ✅ Good — JSX
+<SpButton variant="accent">Click</SpButton>
+<SpOverlay></SpOverlay>
 ```
 
 | Deprecated | Replacement |
@@ -112,15 +158,17 @@ This plugin is **data-driven**. Rules are generated from component descriptors r
 
 ```
 src/
-├── adapters/           # Template syntax parsers (Lit today, JSX/HTML next)
-│   └── lit-adapter.ts  # Extracts elements from html`` tagged templates
+├── adapters/            # Template syntax parsers
+│   ├── lit-adapter.ts   # Extracts elements from html`` tagged templates
+│   ├── jsx-adapter.ts   # Extracts elements from JSX/TSX (PascalCase + kebab-case)
+│   └── utils.ts         # Shared utilities (pascalToKebab, camelToKebab, etc.)
 ├── core/
-│   ├── types.ts        # Normalized IR (ParsedElement, descriptors)
-│   └── rule-factory.ts # Generates ESLint rules from descriptors
+│   ├── types.ts         # Normalized IR (ParsedElement, descriptors)
+│   └── rule-factory.ts  # Generates ESLint rules from descriptors (dual-visitor)
 ├── descriptors/
-│   └── components.ts   # Component accessibility/deprecation metadata
-├── rules/              # Thin wrappers: factory(descriptors)
-└── index.ts            # Plugin entry with recommended/strict configs
+│   └── components.ts    # Component accessibility/deprecation metadata
+├── rules/               # Thin wrappers: factory(descriptors)
+└── index.ts             # Plugin entry with recommended/strict configs
 ```
 
 ### Adding a new component
@@ -141,9 +189,23 @@ Add an entry to `src/descriptors/components.ts`:
 
 No new rule code needed — the rule factory picks it up automatically.
 
-### Adding a new template syntax (e.g. JSX)
+### JSX naming conventions
 
-Create a new adapter in `src/adapters/` that returns `ParsedElement[]` from the relevant AST node type. The rule logic is template-agnostic.
+The JSX adapter supports two usage patterns:
+
+| Pattern | Example | Resolves to |
+|---|---|---|
+| Kebab-case (direct CE usage) | `<sp-action-menu>` | `sp-action-menu` |
+| PascalCase (React wrapper) | `<SpActionMenu>` | `sp-action-menu` |
+
+CamelCase props are automatically converted to their kebab-case attribute equivalents:
+- `ariaLabel` → `aria-label`
+- `isDecorative` → `is-decorative`
+- `allowOutsideClick` → `allow-outside-click`
+
+### Adding a new template syntax
+
+Create a new adapter in `src/adapters/` that returns `ParsedElement[]` from the relevant AST node type, then register its visitor in `rule-factory.ts`. The rule logic is template-agnostic.
 
 ## Configs
 
@@ -157,8 +219,11 @@ Create a new adapter in `src/adapters/` that returns `ParsedElement[]` from the 
 The plugin **skips** attributes with dynamic template expressions since they can't be statically verified:
 
 ```js
-// No warning — value is dynamic
+// No warning — Lit dynamic value
 html`<sp-action-menu label=${this.label}></sp-action-menu>`;
+
+// No warning — JSX dynamic value
+<SpActionMenu label={this.label}></SpActionMenu>
 ```
 
 ## Related

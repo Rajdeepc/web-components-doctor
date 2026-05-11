@@ -19,6 +19,7 @@ import type {
   ParsedElement,
 } from './types.js';
 import { extractElementsFromTemplate } from '../adapters/lit-adapter.js';
+import { extractElementFromJSX } from '../adapters/jsx-adapter.js';
 
 type RuleModule = Rule.RuleModule;
 
@@ -80,83 +81,88 @@ export function createAccessibleComponentRule(
       schema: [],
     },
     create(context) {
-      return {
-        TaggedTemplateExpression(node: Rule.Node) {
-          const elements = extractElementsFromTemplate(node);
+      function check(node: Rule.Node, elements: ParsedElement[]) {
+        for (const element of elements) {
+          const descriptor = descriptors[element.tagName];
+          if (!descriptor?.accessibility) continue;
 
-          for (const element of elements) {
-            const descriptor = descriptors[element.tagName];
-            if (!descriptor?.accessibility) continue;
+          const a11y: AccessibilityDescriptor = descriptor.accessibility;
 
-            const a11y: AccessibilityDescriptor = descriptor.accessibility;
+          if (a11y.requireOneOf && !hasOneOf(element, a11y.requireOneOf)) {
+            context.report({
+              node,
+              messageId: 'missingOneOf',
+              data: {
+                tagName: element.tagName,
+                attributes: a11y.requireOneOf
+                  .map((a) => `\`${a}\``)
+                  .join(', '),
+              },
+            });
+          }
 
-            if (a11y.requireOneOf && !hasOneOf(element, a11y.requireOneOf)) {
-              context.report({
-                node,
-                messageId: 'missingOneOf',
-                data: {
-                  tagName: element.tagName,
-                  attributes: a11y.requireOneOf
-                    .map((a) => `\`${a}\``)
-                    .join(', '),
-                },
-              });
-            }
+          if (a11y.requireAll && !hasAll(element, a11y.requireAll)) {
+            const missing = a11y.requireAll.filter(
+              (a) => !element.attributes.has(a)
+            );
+            context.report({
+              node,
+              messageId: 'missingAll',
+              data: {
+                tagName: element.tagName,
+                attributes: missing.map((a) => `\`${a}\``).join(', '),
+              },
+            });
+          }
 
-            if (a11y.requireAll && !hasAll(element, a11y.requireAll)) {
-              const missing = a11y.requireAll.filter(
-                (a) => !element.attributes.has(a)
-              );
-              context.report({
-                node,
-                messageId: 'missingAll',
-                data: {
-                  tagName: element.tagName,
-                  attributes: missing.map((a) => `\`${a}\``).join(', '),
-                },
-              });
-            }
+          if (a11y.conditionalRules) {
+            for (const rule of a11y.conditionalRules) {
+              if (!matchesCondition(element, rule.when)) continue;
 
-            if (a11y.conditionalRules) {
-              for (const rule of a11y.conditionalRules) {
-                if (!matchesCondition(element, rule.when)) continue;
+              if (rule.requireOneOf && !hasOneOf(element, rule.requireOneOf)) {
+                context.report({
+                  node,
+                  messageId: rule.message
+                    ? 'conditionalViolation'
+                    : 'missingOneOf',
+                  data: rule.message
+                    ? { message: rule.message }
+                    : {
+                        tagName: element.tagName,
+                        attributes: rule.requireOneOf
+                          .map((a) => `\`${a}\``)
+                          .join(', '),
+                      },
+                });
+              }
 
-                if (rule.requireOneOf && !hasOneOf(element, rule.requireOneOf)) {
-                  context.report({
-                    node,
-                    messageId: rule.message
-                      ? 'conditionalViolation'
-                      : 'missingOneOf',
-                    data: rule.message
-                      ? { message: rule.message }
-                      : {
-                          tagName: element.tagName,
-                          attributes: rule.requireOneOf
-                            .map((a) => `\`${a}\``)
-                            .join(', '),
-                        },
-                  });
-                }
-
-                if (rule.requireAll && !hasAll(element, rule.requireAll)) {
-                  context.report({
-                    node,
-                    messageId: rule.message
-                      ? 'conditionalViolation'
-                      : 'missingAll',
-                    data: rule.message
-                      ? { message: rule.message }
-                      : {
-                          tagName: element.tagName,
-                          attributes: rule.requireAll
-                            .map((a) => `\`${a}\``)
-                            .join(', '),
-                        },
-                  });
-                }
+              if (rule.requireAll && !hasAll(element, rule.requireAll)) {
+                context.report({
+                  node,
+                  messageId: rule.message
+                    ? 'conditionalViolation'
+                    : 'missingAll',
+                  data: rule.message
+                    ? { message: rule.message }
+                    : {
+                        tagName: element.tagName,
+                        attributes: rule.requireAll
+                          .map((a) => `\`${a}\``)
+                          .join(', '),
+                      },
+                });
               }
             }
           }
+        }
+      }
+
+      return {
+        TaggedTemplateExpression(node: Rule.Node) {
+          check(node, extractElementsFromTemplate(node));
+        },
+        JSXElement(node: Rule.Node) {
+          check(node, extractElementFromJSX(node));
         },
       };
     },
@@ -187,52 +193,57 @@ export function createNoDeprecatedRule(
       schema: [],
     },
     create(context) {
-      return {
-        TaggedTemplateExpression(node: Rule.Node) {
-          const elements = extractElementsFromTemplate(node);
+      function check(node: Rule.Node, elements: ParsedElement[]) {
+        for (const element of elements) {
+          const descriptor = descriptors[element.tagName];
+          if (!descriptor?.deprecations) continue;
 
-          for (const element of elements) {
-            const descriptor = descriptors[element.tagName];
-            if (!descriptor?.deprecations) continue;
+          const dep: DeprecationDescriptor = descriptor.deprecations;
 
-            const dep: DeprecationDescriptor = descriptor.deprecations;
+          if (dep.attributes) {
+            for (const attrDep of dep.attributes) {
+              if (attrDep.deprecatedValues) {
+                const attrVal = element.attributes.get(attrDep.attribute);
+                if (!attrVal || attrVal.isDynamic) continue;
 
-            if (dep.attributes) {
-              for (const attrDep of dep.attributes) {
-                if (attrDep.deprecatedValues) {
-                  const attrVal = element.attributes.get(attrDep.attribute);
-                  if (!attrVal || attrVal.isDynamic) continue;
-
-                  const match = attrDep.deprecatedValues.find(
-                    (d) => d.value === attrVal.value
-                  );
-                  if (match) {
-                    context.report({
-                      node,
-                      messageId: 'deprecatedValue',
-                      data: { message: match.message },
-                    });
-                  }
-                } else if (attrDep.message) {
-                  if (element.attributes.has(attrDep.attribute)) {
-                    context.report({
-                      node,
-                      messageId: 'deprecatedAttribute',
-                      data: { message: attrDep.message },
-                    });
-                  }
+                const match = attrDep.deprecatedValues.find(
+                  (d) => d.value === attrVal.value
+                );
+                if (match) {
+                  context.report({
+                    node,
+                    messageId: 'deprecatedValue',
+                    data: { message: match.message },
+                  });
+                }
+              } else if (attrDep.message) {
+                if (element.attributes.has(attrDep.attribute)) {
+                  context.report({
+                    node,
+                    messageId: 'deprecatedAttribute',
+                    data: { message: attrDep.message },
+                  });
                 }
               }
             }
-
-            if (dep.warnOnTextContent && element.hasTextContent) {
-              context.report({
-                node,
-                messageId: 'deprecatedSlotContent',
-                data: { message: dep.warnOnTextContent.message },
-              });
-            }
           }
+
+          if (dep.warnOnTextContent && element.hasTextContent) {
+            context.report({
+              node,
+              messageId: 'deprecatedSlotContent',
+              data: { message: dep.warnOnTextContent.message },
+            });
+          }
+        }
+      }
+
+      return {
+        TaggedTemplateExpression(node: Rule.Node) {
+          check(node, extractElementsFromTemplate(node));
+        },
+        JSXElement(node: Rule.Node) {
+          check(node, extractElementFromJSX(node));
         },
       };
     },
@@ -260,27 +271,32 @@ export function createRequiredAttributesRule(
       schema: [],
     },
     create(context) {
-      return {
-        TaggedTemplateExpression(node: Rule.Node) {
-          const elements = extractElementsFromTemplate(node);
+      function check(node: Rule.Node, elements: ParsedElement[]) {
+        for (const element of elements) {
+          const descriptor = descriptors[element.tagName];
+          if (!descriptor?.requiredAttributes) continue;
 
-          for (const element of elements) {
-            const descriptor = descriptors[element.tagName];
-            if (!descriptor?.requiredAttributes) continue;
-
-            for (const attr of descriptor.requiredAttributes) {
-              if (!element.attributes.has(attr)) {
-                context.report({
-                  node,
-                  messageId: 'missingRequired',
-                  data: {
-                    tagName: element.tagName,
-                    attribute: attr,
-                  },
-                });
-              }
+          for (const attr of descriptor.requiredAttributes) {
+            if (!element.attributes.has(attr)) {
+              context.report({
+                node,
+                messageId: 'missingRequired',
+                data: {
+                  tagName: element.tagName,
+                  attribute: attr,
+                },
+              });
             }
           }
+        }
+      }
+
+      return {
+        TaggedTemplateExpression(node: Rule.Node) {
+          check(node, extractElementsFromTemplate(node));
+        },
+        JSXElement(node: Rule.Node) {
+          check(node, extractElementFromJSX(node));
         },
       };
     },
@@ -308,37 +324,42 @@ export function createValidAttributeValuesRule(
       schema: [],
     },
     create(context) {
-      return {
-        TaggedTemplateExpression(node: Rule.Node) {
-          const elements = extractElementsFromTemplate(node);
+      function check(node: Rule.Node, elements: ParsedElement[]) {
+        for (const element of elements) {
+          const descriptor = descriptors[element.tagName];
+          if (!descriptor?.validAttributeValues) continue;
 
-          for (const element of elements) {
-            const descriptor = descriptors[element.tagName];
-            if (!descriptor?.validAttributeValues) continue;
+          for (const [attr, allowedValues] of Object.entries(
+            descriptor.validAttributeValues
+          )) {
+            const attrVal = element.attributes.get(attr);
+            if (!attrVal || attrVal.isDynamic || attrVal.value === null)
+              continue;
 
-            for (const [attr, allowedValues] of Object.entries(
-              descriptor.validAttributeValues
-            )) {
-              const attrVal = element.attributes.get(attr);
-              if (!attrVal || attrVal.isDynamic || attrVal.value === null)
-                continue;
-
-              if (!allowedValues.includes(attrVal.value)) {
-                context.report({
-                  node,
-                  messageId: 'invalidValue',
-                  data: {
-                    tagName: element.tagName,
-                    attribute: attr,
-                    value: attrVal.value,
-                    allowed: allowedValues
-                      .map((v) => `"${v}"`)
-                      .join(', '),
-                  },
-                });
-              }
+            if (!allowedValues.includes(attrVal.value)) {
+              context.report({
+                node,
+                messageId: 'invalidValue',
+                data: {
+                  tagName: element.tagName,
+                  attribute: attr,
+                  value: attrVal.value,
+                  allowed: allowedValues
+                    .map((v) => `"${v}"`)
+                    .join(', '),
+                },
+              });
             }
           }
+        }
+      }
+
+      return {
+        TaggedTemplateExpression(node: Rule.Node) {
+          check(node, extractElementsFromTemplate(node));
+        },
+        JSXElement(node: Rule.Node) {
+          check(node, extractElementFromJSX(node));
         },
       };
     },

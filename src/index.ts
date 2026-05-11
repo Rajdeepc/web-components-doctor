@@ -42,7 +42,7 @@ const strictRules: Linter.RulesRecord = {
 const plugin: ESLint.Plugin = {
   meta: {
     name: 'web-components-doctor',
-    version: '0.1.0',
+    version: '0.2.0',
   },
   rules,
   configs: {},
