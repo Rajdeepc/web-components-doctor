@@ -70,7 +70,7 @@ export function createAccessibleComponentRule(
       docs: {
         description:
           'Require accessible attributes on Spectrum Web Components based on component descriptors.',
-        url: 'https://github.com/Rajdeepc/web-components-doctor#accessible-component',
+        url: 'https://github.com/Rajdeepc/eslint-plugin-web-components-doctor#accessible-component',
       },
       messages: {
         missingOneOf:
@@ -183,7 +183,7 @@ export function createNoDeprecatedRule(
       docs: {
         description:
           'Disallow deprecated attributes and attribute values on Spectrum Web Components.',
-        url: 'https://github.com/Rajdeepc/web-components-doctor#no-deprecated',
+        url: 'https://github.com/Rajdeepc/eslint-plugin-web-components-doctor#no-deprecated',
       },
       messages: {
         deprecatedValue: '{{message}}',
@@ -263,7 +263,7 @@ export function createRequiredAttributesRule(
       docs: {
         description:
           'Require specific attributes on Spectrum Web Components for correct behavior.',
-        url: 'https://github.com/Rajdeepc/web-components-doctor#required-attributes',
+        url: 'https://github.com/Rajdeepc/eslint-plugin-web-components-doctor#required-attributes',
       },
       messages: {
         missingRequired:
@@ -316,7 +316,7 @@ export function createValidAttributeValuesRule(
       docs: {
         description:
           'Disallow invalid attribute values on Spectrum Web Components.',
-        url: 'https://github.com/Rajdeepc/web-components-doctor#valid-attribute-values',
+        url: 'https://github.com/Rajdeepc/eslint-plugin-web-components-doctor#valid-attribute-values',
       },
       messages: {
         invalidValue:
@@ -390,7 +390,7 @@ export function createValidSlotNamesRule(
       docs: {
         description:
           'Disallow placing children into slots that a Spectrum Web Component does not define.',
-        url: 'https://github.com/Rajdeepc/web-components-doctor#valid-slot-names',
+        url: 'https://github.com/Rajdeepc/eslint-plugin-web-components-doctor#valid-slot-names',
       },
       messages: {
         invalidSlot:
@@ -454,7 +454,7 @@ export function createValidSlotChildrenRule(
       docs: {
         description:
           'Disallow placing elements into slots that do not accept their tag name.',
-        url: 'https://github.com/Rajdeepc/web-components-doctor#valid-slot-children',
+        url: 'https://github.com/Rajdeepc/eslint-plugin-web-components-doctor#valid-slot-children',
       },
       messages: {
         invalidChild:

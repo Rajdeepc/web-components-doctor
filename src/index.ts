@@ -49,7 +49,7 @@ const strictRules: Linter.RulesRecord = {
 
 const plugin: ESLint.Plugin = {
   meta: {
-    name: 'web-components-doctor',
+    name: 'eslint-plugin-web-components-doctor',
     version: '0.3.0',
   },
   rules,
@@ -61,7 +61,7 @@ const plugin: ESLint.Plugin = {
  *
  * @example
  * ```js
- * import swc from 'eslint-plugin-swc';
+ * import swc from 'eslint-plugin-web-components-doctor';
  *
  * export default [
  *   swc.configs.recommended,
