@@ -1,5 +1,5 @@
 {
-  "name": "eslint-plugin-web-components-doctor",
+  "name": "eslint-plugin-spectrum-wc",
   "version": "0.3.0",
   "description": "ESLint plugin for Spectrum Web Components — catches accessibility gaps, deprecated APIs, and invalid attribute usage at lint time.",
   "license": "Apache-2.0",
@@ -52,12 +52,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/Rajdeepc/eslint-plugin-web-components-doctor.git"
+    "url": "https://github.com/Rajdeepc/eslint-plugin-spectrum-wc.git"
   },
   "bugs": {
-    "url": "https://github.com/Rajdeepc/eslint-plugin-web-components-doctor/issues"
+    "url": "https://github.com/Rajdeepc/eslint-plugin-spectrum-wc/issues"
   },
-  "homepage": "https://github.com/Rajdeepc/eslint-plugin-web-components-doctor#readme",
+  "homepage": "https://github.com/Rajdeepc/eslint-plugin-spectrum-wc#readme",
   "engines": {
     "node": ">=18.0.0"
   }

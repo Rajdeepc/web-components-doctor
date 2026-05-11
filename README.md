@@ -1,11 +1,11 @@
-# eslint-plugin-web-components-doctor
+# eslint-plugin-spectrum-wc
 
 ESLint plugin for [Spectrum Web Components](https://opensource.adobe.com/spectrum-web-components/) consumers. Catches accessibility gaps, deprecated APIs, and invalid attribute usage **at lint time** — shifting left what `window.__swc.warn()` and axe catch at runtime.
 
 ## Installation
 
 ```bash
-npm install eslint-plugin-web-components-doctor --save-dev
+npm install eslint-plugin-spectrum-wc --save-dev
 ```
 
 ## Quick Start (ESLint 9+ flat config)
@@ -14,7 +14,7 @@ npm install eslint-plugin-web-components-doctor --save-dev
 
 ```js
 // eslint.config.js
-import swc from 'eslint-plugin-web-components-doctor';
+import swc from 'eslint-plugin-spectrum-wc';
 
 export default [
   swc.configs.recommended,
@@ -27,7 +27,7 @@ The plugin automatically detects both syntaxes. Just enable JSX parsing in your 
 
 ```js
 // eslint.config.js
-import swc from 'eslint-plugin-web-components-doctor';
+import swc from 'eslint-plugin-spectrum-wc';
 
 export default [
   {
