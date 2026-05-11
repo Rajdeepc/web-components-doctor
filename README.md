@@ -1,18 +1,18 @@
-# eslint-plugin-swc
+# web-components-doctor
 
 ESLint plugin for [Spectrum Web Components](https://opensource.adobe.com/spectrum-web-components/) consumers. Catches accessibility gaps, deprecated APIs, and invalid attribute usage **at lint time** — shifting left what `window.__swc.warn()` and axe catch at runtime.
 
 ## Installation
 
 ```bash
-npm install eslint-plugin-swc --save-dev
+npm install web-components-doctor --save-dev
 ```
 
 ## Quick Start (ESLint 9+ flat config)
 
 ```js
 // eslint.config.js
-import swc from 'eslint-plugin-swc';
+import swc from 'web-components-doctor';
 
 export default [
   swc.configs.recommended,
@@ -166,6 +166,7 @@ html`<sp-action-menu label=${this.label}></sp-action-menu>`;
 - [Spectrum Web Components](https://opensource.adobe.com/spectrum-web-components/) — the component library
 - [eslint-plugin-lit-a11y](https://github.com/open-wc/open-wc/tree/master/packages/eslint-plugin-lit-a11y) — generic Lit accessibility rules
 - [axe-core](https://github.com/dequelabs/axe-core) — runtime accessibility testing
+- [Alex Hayton's eslint-plugin-spectrum-web-components-lit](https://github.com/AlexHayton/eslint-plugin-spectrum-web-components-lit) — the original inspiration
 
 ## License
 

@@ -1,5 +1,5 @@
 {
-  "name": "eslint-plugin-swc",
+  "name": "web-components-doctor",
   "version": "0.1.0",
   "description": "ESLint plugin for Spectrum Web Components — catches accessibility gaps, deprecated APIs, and invalid attribute usage at lint time.",
   "license": "Apache-2.0",
@@ -50,12 +50,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/AdobeDevXSC/eslint-plugin-swc.git"
+    "url": "https://github.com/Rajdeepc/web-components-doctor.git"
   },
   "bugs": {
-    "url": "https://github.com/AdobeDevXSC/eslint-plugin-swc/issues"
+    "url": "https://github.com/Rajdeepc/web-components-doctor/issues"
   },
-  "homepage": "https://github.com/AdobeDevXSC/eslint-plugin-swc#readme",
+  "homepage": "https://github.com/Rajdeepc/web-components-doctor#readme",
   "engines": {
     "node": ">=18.0.0"
   }

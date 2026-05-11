@@ -68,7 +68,7 @@ export function createAccessibleComponentRule(
       docs: {
         description:
           'Require accessible attributes on Spectrum Web Components based on component descriptors.',
-        url: 'https://github.com/AdobeDevXSC/eslint-plugin-swc#accessible-component',
+        url: 'https://github.com/Rajdeepc/web-components-doctor#accessible-component',
       },
       messages: {
         missingOneOf:
@@ -176,7 +176,7 @@ export function createNoDeprecatedRule(
       docs: {
         description:
           'Disallow deprecated attributes and attribute values on Spectrum Web Components.',
-        url: 'https://github.com/AdobeDevXSC/eslint-plugin-swc#no-deprecated',
+        url: 'https://github.com/Rajdeepc/web-components-doctor#no-deprecated',
       },
       messages: {
         deprecatedValue: '{{message}}',
@@ -251,7 +251,7 @@ export function createRequiredAttributesRule(
       docs: {
         description:
           'Require specific attributes on Spectrum Web Components for correct behavior.',
-        url: 'https://github.com/AdobeDevXSC/eslint-plugin-swc#required-attributes',
+        url: 'https://github.com/Rajdeepc/web-components-doctor#required-attributes',
       },
       messages: {
         missingRequired:
@@ -299,7 +299,7 @@ export function createValidAttributeValuesRule(
       docs: {
         description:
           'Disallow invalid attribute values on Spectrum Web Components.',
-        url: 'https://github.com/AdobeDevXSC/eslint-plugin-swc#valid-attribute-values',
+        url: 'https://github.com/Rajdeepc/web-components-doctor#valid-attribute-values',
       },
       messages: {
         invalidValue:
