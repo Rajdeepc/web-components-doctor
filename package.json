@@ -1,0 +1,62 @@
+{
+  "name": "eslint-plugin-swc",
+  "version": "0.1.0",
+  "description": "ESLint plugin for Spectrum Web Components — catches accessibility gaps, deprecated APIs, and invalid attribute usage at lint time.",
+  "license": "Apache-2.0",
+  "author": "Adobe",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src/ tests/",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "eslint": ">=8.0.0"
+  },
+  "dependencies": {
+    "parse5": "^7.2.1"
+  },
+  "devDependencies": {
+    "@typescript-eslint/rule-tester": "^8.24.0",
+    "@typescript-eslint/utils": "^8.24.0",
+    "eslint": "^9.20.0",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.5"
+  },
+  "keywords": [
+    "eslint",
+    "eslintplugin",
+    "spectrum",
+    "adobe",
+    "web-components",
+    "accessibility",
+    "lit",
+    "a11y",
+    "spectrum-web-components"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AdobeDevXSC/eslint-plugin-swc.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AdobeDevXSC/eslint-plugin-swc/issues"
+  },
+  "homepage": "https://github.com/AdobeDevXSC/eslint-plugin-swc#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
